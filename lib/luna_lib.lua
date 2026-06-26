@@ -126,6 +126,150 @@ local function bindMatches(bind, input)
     return bind == input.KeyCode or bind == input.UserInputType
 end
 
+local function iconLine(parent, x1, y1, x2, y2, thickness, color)
+    local dx, dy = x2 - x1, y2 - y1
+    local length = math.sqrt(dx * dx + dy * dy)
+    local frame = newInstance("Frame", {
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        Position = UDim2.fromOffset((x1 + x2) / 2, (y1 + y2) / 2),
+        Size = UDim2.fromOffset(length + (thickness * 0.5), thickness),
+        Rotation = math.deg(math.atan2(dy, dx)),
+        BackgroundColor3 = color,
+        BorderSizePixel = 0,
+        Parent = parent,
+    })
+    withCorner(frame, thickness / 2)
+    return frame
+end
+
+local function iconCircle(parent, cx, cy, diameter, thickness, color, filled)
+    local frame = newInstance("Frame", {
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        Position = UDim2.fromOffset(cx, cy),
+        Size = UDim2.fromOffset(diameter, diameter),
+        BackgroundTransparency = filled and 0 or 1,
+        BackgroundColor3 = color,
+        BorderSizePixel = 0,
+        Parent = parent,
+    })
+    withCorner(frame, diameter / 2)
+    if not filled then
+        withStroke(frame, color, thickness, 0)
+    end
+    return frame
+end
+
+local function iconRect(parent, x, y, width, height, thickness, color, cornerRadius, filled)
+    local frame = newInstance("Frame", {
+        Position = UDim2.fromOffset(x, y),
+        Size = UDim2.fromOffset(width, height),
+        BackgroundTransparency = filled and 0 or 1,
+        BackgroundColor3 = color,
+        BorderSizePixel = 0,
+        Parent = parent,
+    })
+    withCorner(frame, cornerRadius or 2)
+    if not filled then
+        withStroke(frame, color, thickness, 0)
+    end
+    return frame
+end
+
+local ICONS = {}
+ICONS.home = function(L, C, R) R(4, 4, 7, 7, 0, 2.5, true); R(13, 4, 7, 7, 0, 2.5, true); R(4, 13, 7, 7, 0, 2.5, true); R(13, 13, 7, 7, 0, 2.5, true) end
+ICONS.eye = function(L, C, R) R(2.5, 7, 19, 10, 2.2, 5); C(12, 12, 3.2, 0, true) end
+ICONS.bars = function(L, C, R) R(3, 4, 18, 13, 2.2, 2.5); L(8.5, 21, 15.5, 21, 2.2); L(12, 17, 12, 21, 2.2) end
+ICONS.users = function(L, C, R) C(9, 8.5, 7, 2.2); R(3.5, 15.5, 11, 7.5, 2.2, 5); C(17, 7.5, 5, 2.2) end
+ICONS.globe = function(L, C, R) C(12, 12, 18, 2.2); L(3, 12, 21, 12, 2.2); R(7.5, 3, 9, 18, 2.2, 4.5) end
+ICONS.crosshair = function(L, C, R) C(12, 12, 17, 2.2); L(12, 1.5, 12, 6, 2.2); L(12, 18, 12, 22.5, 2.2); L(1.5, 12, 6, 12, 2.2); L(18, 12, 22.5, 12, 2.2); C(12, 12, 3.6, 0, true) end
+ICONS.file = function(L, C, R) R(5, 3, 14, 18, 2.2, 2.5); L(8.5, 9, 15.5, 9, 2); L(8.5, 12.5, 15.5, 12.5, 2); L(8.5, 16, 13, 16, 2) end
+ICONS.save = function(L, C, R) R(3, 5.5, 8, 4, 2.2, 2); R(3, 7.5, 18, 12.5, 2.2, 2.5) end
+ICONS.gear = function(L, C, R)
+    for i = 0, 7 do
+        local a = math.rad(i * 45)
+        L(12 + math.cos(a) * 6.5, 12 + math.sin(a) * 6.5, 12 + math.cos(a) * 10.5, 12 + math.sin(a) * 10.5, 2.8)
+    end
+    C(12, 12, 13, 2.2)
+    C(12, 12, 5, 2.2)
+end
+ICONS.play = function(L, C, R) L(8, 5, 18, 12); L(18, 12, 8, 19); L(8, 5, 8, 19) end
+ICONS.edit = function(L, C, R) L(5, 19, 16, 8, 2.5); L(14, 6, 18, 10, 2.5); L(4, 20, 5, 19, 2.5); C(4.5, 19.5, 2, 2, true) end
+ICONS.trash = function(L, C, R) L(4, 6, 20, 6, 2); L(9, 6, 9, 3); L(15, 6, 15, 3); L(9, 3, 15, 3); R(6, 6, 12, 15, 2, 2); L(10, 10, 10, 18); L(14, 10, 14, 18) end
+ICONS.x = function(L, C, R) L(6, 6, 18, 18, 2); L(18, 6, 6, 18, 2) end
+ICONS.chevron = function(L, C, R) L(6, 9, 12, 15, 2); L(12, 15, 18, 9, 2) end
+ICONS.plus = function(L, C, R) L(12, 5, 12, 19, 2); L(5, 12, 19, 12, 2) end
+ICONS.check = function(L, C, R) L(5, 13, 10, 18, 2.5); L(10, 18, 19, 6, 2.5) end
+ICONS.info = function(L, C, R) C(12, 12, 18, 2); L(12, 11, 12, 17); C(12, 7, 2, 2, true) end
+ICONS.warn = function(L, C, R) L(12, 3, 21, 20); L(21, 20, 3, 20); L(3, 20, 12, 3); L(12, 9, 12, 14); C(12, 17, 2, 2, true) end
+ICONS.list = function(L, C, R) L(9, 6, 20, 6); L(9, 12, 20, 12); L(9, 18, 20, 18); C(4, 6, 2, 2, true); C(4, 12, 2, 2, true); C(4, 18, 2, 2, true) end
+ICONS.crescent = function(L, C, R, col)
+    C(12, 12, 18, 0, true)
+    C(15.5, 10.5, 15, 0, true)
+end
+
+local function clearChildren(parent)
+    for _, child in ipairs(parent:GetChildren()) do
+        child:Destroy()
+    end
+end
+
+local function drawIcon(container, name, color, size)
+    local iconFn = ICONS[name] or ICONS.list
+    local scale = size / 24
+    local function Lf(x1, y1, x2, y2, thickness)
+        iconLine(container, x1 * scale, y1 * scale, x2 * scale, y2 * scale, (thickness or 2) * scale, color)
+    end
+    local function Cf(cx, cy, diameter, thickness, filled)
+        iconCircle(container, cx * scale, cy * scale, diameter * scale, (thickness or 2) * scale, color, filled)
+    end
+    local function Rf(x, y, width, height, thickness, cornerRadius, filled)
+        iconRect(container, x * scale, y * scale, width * scale, height * scale, (thickness or 2) * scale, color, (cornerRadius or 2) * scale, filled)
+    end
+    iconFn(Lf, Cf, Rf, color)
+end
+
+local function createIcon(parent, name, color, size)
+    local box = newInstance("Frame", {
+        Size = UDim2.fromOffset(size, size),
+        BackgroundTransparency = 1,
+        Parent = parent,
+    })
+    drawIcon(box, name, color, size)
+    return box
+end
+
+local function recolorIcon(box, color)
+    for _, node in ipairs(box:GetDescendants()) do
+        if node:IsA("Frame") and node.BackgroundTransparency == 0 then
+            node.BackgroundColor3 = color
+        elseif node:IsA("UIStroke") then
+            node.Color = color
+        end
+    end
+end
+
+local DEFAULT_TAB_ICONS = {
+    ["Главная"] = "home",
+    ["Home"] = "home",
+    ["Визуалы"] = "eye",
+    ["Visuals"] = "eye",
+    ["HUD"] = "bars",
+    ["Худ"] = "bars",
+    ["Худ (HUD)"] = "bars",
+    ["Игроки"] = "users",
+    ["Players"] = "users",
+    ["Мир"] = "globe",
+    ["World"] = "globe",
+    ["Оружие"] = "crosshair",
+    ["Combat"] = "crosshair",
+    ["Скрипты"] = "file",
+    ["Scripts"] = "file",
+    ["Конфиг"] = "save",
+    ["Config"] = "save",
+    ["Настройки"] = "gear",
+    ["Settings"] = "gear",
+}
+
 local Window = {}
 Window.__index = Window
 
@@ -138,7 +282,9 @@ Section.__index = Section
 local function normalizeWindowConfig(config)
     local cfg = config or {}
     return {
-        name = cfg.name or "Luna Library",
+        name = cfg.name or "LUNA",
+        subtitle = cfg.subtitle or "ROBLOX LIBRARY",
+        logoIcon = cfg.logoIcon or "crescent",
         size = cfg.size or UDim2.fromOffset(980, 600),
         position = cfg.position or UDim2.fromScale(0.5, 0.5),
         keybind = cfg.keybind or Enum.KeyCode.RightShift,
@@ -223,17 +369,59 @@ local function createBaseGui(cfg)
         Parent = sidebar,
     })
 
-    local logo = newInstance("TextLabel", {
+    local logo = newInstance("Frame", {
         Name = "Logo",
         Size = UDim2.new(1, 0, 0, 70),
         BackgroundTransparency = 1,
+        Parent = sidebar,
+    })
+    local logoBox = newInstance("Frame", {
+        Size = UDim2.fromOffset(34, 34),
+        Position = UDim2.fromOffset(20, 18),
+        BorderSizePixel = 0,
+        Parent = logo,
+    })
+    withCorner(logoBox, 9)
+    local logoMoon = newInstance("Frame", {
+        Size = UDim2.fromOffset(18, 18),
+        Position = UDim2.fromOffset(8, 8),
+        BorderSizePixel = 0,
+        Parent = logoBox,
+    })
+    withCorner(logoMoon, 9)
+    local logoMoonCut = newInstance("Frame", {
+        Size = UDim2.fromOffset(16, 16),
+        Position = UDim2.fromOffset(10, 5),
+        BorderSizePixel = 0,
+        Parent = logoBox,
+    })
+    withCorner(logoMoonCut, 8)
+    local logoGlyph
+    if cfg.logoIcon and cfg.logoIcon ~= "crescent" then
+        logoMoon.Visible = false
+        logoMoonCut.Visible = false
+        logoGlyph = createIcon(logoBox, cfg.logoIcon, Color3.new(1, 1, 1), 22)
+        logoGlyph.Position = UDim2.fromOffset(6, 6)
+    end
+    local logoTitle = newInstance("TextLabel", {
+        Size = UDim2.fromOffset(120, 20),
+        Position = UDim2.fromOffset(64, 18),
+        BackgroundTransparency = 1,
         Text = cfg.name,
-        TextColor3 = Color3.new(1, 1, 1),
         TextSize = 19,
         Font = FONT_BOLD,
         TextXAlignment = Enum.TextXAlignment.Left,
-        Position = UDim2.fromOffset(20, 18),
-        Parent = sidebar,
+        Parent = logo,
+    })
+    local logoSubtitle = newInstance("TextLabel", {
+        Size = UDim2.fromOffset(120, 14),
+        Position = UDim2.fromOffset(64, 38),
+        BackgroundTransparency = 1,
+        Text = cfg.subtitle,
+        TextSize = 10,
+        Font = FONT,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        Parent = logo,
     })
 
     local navHolder = newInstance("Frame", {
@@ -283,7 +471,7 @@ local function createBaseGui(cfg)
         Size = UDim2.fromOffset(30, 30),
         Position = UDim2.new(1, -42, 0, 16),
         BackgroundColor3 = Color3.fromRGB(30, 25, 48),
-        Text = "X",
+        Text = "",
         TextSize = 14,
         TextColor3 = Color3.fromRGB(150, 142, 175),
         Font = FONT_BOLD,
@@ -292,6 +480,8 @@ local function createBaseGui(cfg)
         Parent = header,
     })
     withCorner(closeButton, 8)
+    local closeIcon = createIcon(closeButton, "x", Color3.fromRGB(150, 142, 175), 18)
+    closeIcon.Position = UDim2.fromOffset(6, 6)
 
     local pages = newInstance("Frame", {
         Name = "Pages",
@@ -311,11 +501,18 @@ local function createBaseGui(cfg)
         windowScale = scale,
         sidebar = sidebar,
         logo = logo,
+        logoBox = logoBox,
+        logoMoon = logoMoon,
+        logoMoonCut = logoMoonCut,
+        logoGlyph = logoGlyph,
+        logoTitle = logoTitle,
+        logoSubtitle = logoSubtitle,
         navHolder = navHolder,
         contentWrap = contentWrap,
         header = header,
         title = title,
         closeButton = closeButton,
+        closeIcon = closeIcon,
         pages = pages,
         dragHitbox = dragHitbox,
         notifications = notifications,
@@ -328,28 +525,37 @@ local function applyTheme(frame, theme)
     withStroke(frame.window, theme.border, 1, 0.35)
 
     frame.sidebar.BackgroundColor3 = theme.side
-    frame.logo.TextColor3 = theme.text
+    frame.logoBox.BackgroundColor3 = theme.elem
+    frame.logoMoon.BackgroundColor3 = theme.accent
+    frame.logoMoonCut.BackgroundColor3 = theme.elem
+    if frame.logoGlyph then
+        recolorIcon(frame.logoGlyph, theme.accent)
+    end
+    frame.logoTitle.TextColor3 = theme.text
+    frame.logoSubtitle.TextColor3 = theme.dim
 
-    local ext = frame.sidebar:FindFirstChildOfClass("Frame")
-    if ext then
-        ext.BackgroundColor3 = theme.side
+    for _, child in ipairs(frame.sidebar:GetChildren()) do
+        if child:IsA("Frame") and child ~= frame.logo and child ~= frame.navHolder then
+            child.BackgroundColor3 = theme.side
+        end
     end
 
     frame.title.TextColor3 = theme.text
     frame.closeButton.BackgroundColor3 = theme.elem
     frame.closeButton.TextColor3 = theme.sub
+    recolorIcon(frame.closeIcon, theme.sub)
 
     frame.closeButton.MouseEnter:Connect(function()
         tween(frame.closeButton, QUICK, {
             BackgroundColor3 = theme.red,
-            TextColor3 = theme.text,
         }):Play()
+        recolorIcon(frame.closeIcon, theme.text)
     end)
     frame.closeButton.MouseLeave:Connect(function()
         tween(frame.closeButton, QUICK, {
             BackgroundColor3 = theme.elem,
-            TextColor3 = theme.sub,
         }):Play()
+        recolorIcon(frame.closeIcon, theme.sub)
     end)
 end
 
@@ -384,14 +590,11 @@ local function makeDraggable(handle, target)
     end)
 end
 
-local function createNavButton(window, name, index)
+local function createNavButton(window, name, iconName, index)
     local button = newInstance("TextButton", {
         Size = UDim2.new(1, 0, 0, 38),
         BackgroundColor3 = window.theme.side,
-        Text = name,
-        TextColor3 = window.theme.sub,
-        TextSize = 13,
-        Font = FONT_BOLD,
+        Text = "",
         AutoButtonColor = false,
         BorderSizePixel = 0,
         LayoutOrder = index,
@@ -410,12 +613,30 @@ local function createNavButton(window, name, index)
     })
     withCorner(bar, 2)
 
+    local icon = createIcon(button, iconName or "list", window.theme.dim, 20)
+    icon.Position = UDim2.fromOffset(12, 9)
+
+    local label = newInstance("TextLabel", {
+        Size = UDim2.new(1, -44, 1, 0),
+        Position = UDim2.fromOffset(42, 0),
+        BackgroundTransparency = 1,
+        Text = name,
+        TextColor3 = window.theme.sub,
+        TextSize = 13,
+        Font = FONT_BOLD,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        Parent = button,
+    })
+
     button.MouseEnter:Connect(function()
         if window.currentTabName ~= name then
             tween(button, QUICK, {
                 BackgroundColor3 = window.theme.elem,
+            }):Play()
+            tween(label, QUICK, {
                 TextColor3 = window.theme.text,
             }):Play()
+            recolorIcon(icon, window.theme.text)
         end
     end)
 
@@ -423,12 +644,15 @@ local function createNavButton(window, name, index)
         if window.currentTabName ~= name then
             tween(button, QUICK, {
                 BackgroundColor3 = window.theme.side,
+            }):Play()
+            tween(label, QUICK, {
                 TextColor3 = window.theme.sub,
             }):Play()
+            recolorIcon(icon, window.theme.dim)
         end
     end)
 
-    return button, bar
+    return button, bar, label, icon
 end
 
 function Window:_selectTab(name)
@@ -441,11 +665,14 @@ function Window:_selectTab(name)
         tabData.page.Visible = selected
         tween(tabData.navButton, QUICK, {
             BackgroundColor3 = selected and self.theme.elem or self.theme.side,
+        }):Play()
+        tween(tabData.navLabel, QUICK, {
             TextColor3 = selected and self.theme.text or self.theme.sub,
         }):Play()
         tween(tabData.navBar, QUICK, {
             BackgroundTransparency = selected and 0 or 1,
         }):Play()
+        recolorIcon(tabData.navIcon, selected and self.theme.accent or self.theme.dim)
     end
 
     self.ui.title.Text = name
@@ -554,6 +781,15 @@ function Window:Toggle()
     self:SetVisible(not self.visible)
 end
 
+function Window:SetBrand(name, subtitle)
+    if type(name) == "string" and name ~= "" then
+        self.ui.logoTitle.Text = name
+    end
+    if type(subtitle) == "string" then
+        self.ui.logoSubtitle.Text = subtitle
+    end
+end
+
 function Window:Destroy()
     for _, conn in ipairs(self.connections) do
         conn:Disconnect()
@@ -565,6 +801,7 @@ end
 function Window:Tab(options)
     local cfg = options or {}
     local name = cfg.name or ("Tab " .. tostring(#self.tabOrder + 1))
+    local iconName = cfg.icon or DEFAULT_TAB_ICONS[name] or "list"
 
     if self.tabs[name] then
         error("Tab already exists: " .. name)
@@ -589,7 +826,7 @@ function Window:Tab(options)
         Parent = page,
     })
 
-    local navButton, navBar = createNavButton(self, name, #self.tabOrder + 1)
+    local navButton, navBar, navLabel, navIcon = createNavButton(self, name, iconName, #self.tabOrder + 1)
     navButton.MouseButton1Click:Connect(function()
         self:_selectTab(name)
     end)
@@ -599,6 +836,8 @@ function Window:Tab(options)
         page = page,
         navButton = navButton,
         navBar = navBar,
+        navLabel = navLabel,
+        navIcon = navIcon,
     }
     self.tabs[name] = tabData
     table.insert(self.tabOrder, name)
@@ -619,13 +858,15 @@ end
 function Tab:Section(options)
     local cfg = options or {}
     local title = cfg.name or cfg.title
+    local parent = cfg.parent or self.page
 
     local card = newInstance("Frame", {
         Size = UDim2.new(1, 0, 0, 0),
         AutomaticSize = Enum.AutomaticSize.Y,
         BackgroundColor3 = self.window.theme.card,
         BorderSizePixel = 0,
-        Parent = self.page,
+        LayoutOrder = cfg.order or 0,
+        Parent = parent,
     })
     withCorner(card, 10)
     withStroke(card, self.window.theme.border, 1, 0.6)
@@ -659,6 +900,68 @@ function Tab:Section(options)
     return section
 end
 
+function Tab:Columns(count, options)
+    local cfg = options or {}
+    local colCount = math.max(1, math.floor(count or 2))
+    local gap = cfg.gap or 16
+    local holder = newInstance("Frame", {
+        Size = UDim2.new(1, 0, 0, 0),
+        AutomaticSize = Enum.AutomaticSize.Y,
+        BackgroundTransparency = 1,
+        LayoutOrder = cfg.order or 0,
+        Parent = cfg.parent or self.page,
+    })
+    newInstance("UIListLayout", {
+        FillDirection = Enum.FillDirection.Horizontal,
+        Padding = UDim.new(0, gap),
+        SortOrder = Enum.SortOrder.LayoutOrder,
+        Parent = holder,
+    })
+
+    local columns = {}
+    for i = 1, colCount do
+        local col = newInstance("Frame", {
+            Size = UDim2.new(1 / colCount, -gap * (colCount - 1) / colCount, 0, 0),
+            AutomaticSize = Enum.AutomaticSize.Y,
+            BackgroundTransparency = 1,
+            LayoutOrder = i,
+            Parent = holder,
+        })
+        newInstance("UIListLayout", {
+            Padding = UDim.new(0, gap),
+            SortOrder = Enum.SortOrder.LayoutOrder,
+            Parent = col,
+        })
+        table.insert(columns, col)
+    end
+
+    return columns, holder
+end
+
+function Section:Paragraph(text)
+    local label = newInstance("TextLabel", {
+        Size = UDim2.new(1, 0, 0, 40),
+        AutomaticSize = Enum.AutomaticSize.Y,
+        BackgroundTransparency = 1,
+        Text = tostring(text or ""),
+        TextColor3 = self.window.theme.sub,
+        TextSize = 12,
+        Font = FONT,
+        TextWrapped = true,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        TextYAlignment = Enum.TextYAlignment.Top,
+        Parent = self.card,
+    })
+    return {
+        Set = function(_, value)
+            label.Text = tostring(value or "")
+        end,
+        Get = function()
+            return label.Text
+        end,
+    }
+end
+
 function Section:Label(text)
     local label = newInstance("TextLabel", {
         Size = UDim2.new(1, 0, 0, 16),
@@ -676,6 +979,70 @@ function Section:Label(text)
         end,
         Get = function()
             return label.Text
+        end,
+    }
+end
+
+function Section:DisabledToggle(options)
+    local cfg = options or {}
+    local text = cfg.text or "Disabled"
+    local reason = cfg.reason or "Temporarily unavailable"
+    local callback = cfg.callback
+
+    local row = newInstance("Frame", {
+        Size = UDim2.new(1, 0, 0, 30),
+        BackgroundTransparency = 1,
+        Parent = self.card,
+    })
+    newInstance("TextLabel", {
+        Size = UDim2.new(1, -54, 1, 0),
+        BackgroundTransparency = 1,
+        Text = text,
+        TextColor3 = self.window.theme.dim,
+        TextSize = 13,
+        Font = FONT,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        Parent = row,
+    })
+    local switch = newInstance("Frame", {
+        Size = UDim2.fromOffset(40, 21),
+        Position = UDim2.new(1, -40, 0.5, 0),
+        AnchorPoint = Vector2.new(0, 0.5),
+        BackgroundColor3 = Color3.fromRGB(38, 33, 52),
+        BorderSizePixel = 0,
+        Parent = row,
+    })
+    withCorner(switch, 11)
+    local knob = newInstance("Frame", {
+        Size = UDim2.fromOffset(15, 15),
+        AnchorPoint = Vector2.new(0, 0.5),
+        Position = UDim2.new(0, 3, 0.5, 0),
+        BackgroundColor3 = self.window.theme.dim,
+        BorderSizePixel = 0,
+        Parent = switch,
+    })
+    withCorner(knob, 8)
+
+    newInstance("TextButton", {
+        Size = UDim2.fromScale(1, 1),
+        BackgroundTransparency = 1,
+        Text = "",
+        Parent = row,
+    }).MouseButton1Click:Connect(function()
+        if callback then
+            callback(reason)
+        else
+            self.window:Notify({
+                title = "Disabled",
+                message = reason,
+                kind = "warning",
+            })
+        end
+    end)
+
+    return {
+        Get = function()
+            return false
         end,
     }
 end
@@ -851,6 +1218,9 @@ function Section:Slider(options)
     local text = cfg.text or "Slider"
     local min = cfg.min or 0
     local max = cfg.max or 100
+    if max <= min then
+        max = min + 1
+    end
     local callback = cfg.callback
     local value = math.clamp(cfg.default or min, min, max)
 
