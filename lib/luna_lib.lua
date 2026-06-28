@@ -291,6 +291,7 @@ local function normalizeWindowConfig(config)
         keybind = cfg.keybind or Enum.KeyCode.RightShift,
         configFolder = cfg.configFolder or "LunaConfigs",
         destroyExisting = cfg.destroyExisting ~= false,
+        displayOrder = cfg.displayOrder or 50,
         theme = cfg.theme or {},
         visible = cfg.visible ~= false,
     }
@@ -339,7 +340,7 @@ local function createBaseGui(cfg)
     local gui = newInstance("ScreenGui", {
         Name = "LunaLibraryUI",
         ResetOnSpawn = false,
-        DisplayOrder = 50,
+        DisplayOrder = cfg.displayOrder,
         ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
         IgnoreGuiInset = true,
         Parent = PlayerGui,
